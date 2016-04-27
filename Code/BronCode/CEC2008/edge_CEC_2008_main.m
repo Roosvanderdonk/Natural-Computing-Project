@@ -77,7 +77,9 @@ for nMethod = 1:4;
 
 
     v = v.*100;
-    % pheromone function initialization
+    
+    % pheromone function initialization, matrix of size image, with
+    % starting values of 0.0001
     p = 0.0001 .* ones(size(img));     
 
 
@@ -90,10 +92,10 @@ for nMethod = 1:4;
 
     ant_total_num = round(sqrt(nrow*ncol));
 
-    ant_pos_idx = zeros(ant_total_num, 2); % record the location of ant
+    % initialize matrix to record the intitial location of ants
+    ant_pos_idx = zeros(ant_total_num, 2); 
 
-    % initialize the positions of ants
-
+    % initialize the random positions of ants, x and y coordinate
     rand('state', sum(clock));
     temp = rand(ant_total_num, 2);
     ant_pos_idx(:,1) = round(1 + (nrow-1) * temp(:,1)); %row index
