@@ -14,11 +14,16 @@ img = double(imread('test.bmp'))./255;
 
 fprintf('Welcome to demo program.\nPlease wait......\n');
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Compute heuristic values
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 v = zeros(size(img));
 v_norm = 0;
 for rr =1:nrow
     for cc=1:ncol
-        %defination of clique
+        %definition of clique = the area that is used to compute the
+        %heuristic value for this pixel
         temp1 = [rr-2 cc-1; rr-2 cc+1; rr-1 cc-2; rr-1 cc-1; rr-1 cc; rr-1 cc+1; rr-1 cc+2; rr cc-1];
         temp2 = [rr+2 cc+1; rr+2 cc-1; rr+1 cc+2; rr+1 cc+1; rr+1 cc; rr+1 cc-1; rr+1 cc-2; rr cc+1];
 
@@ -27,7 +32,7 @@ for rr =1:nrow
         temp11 = temp1(temp0, :);
         temp22 = temp2(temp0, :);
 
-        temp00 = zeros(size(temp11,1));
+        temp00 = zeros(size(temp11,1)); %fill temp00 with actual intensity differences
         for kk = 1:size(temp11,1)
             temp00(kk) = abs(img(temp11(kk,1), temp11(kk,2))-img(temp22(kk,1), temp22(kk,2)));
         end
@@ -37,22 +42,31 @@ for rr =1:nrow
             v_norm = v_norm + v(rr, cc);
         else
             lambda = 10;
-            temp00 = sin(pi .* temp00./2./lambda);
+            temp00 = sin(pi .* temp00./2./lambda); %this corresponds to function (9) in the paper.
             v(rr, cc) = sum(sum(temp00.^2));
             v_norm = v_norm + v(rr, cc);
         end
     end
 end
 v = v./v_norm;  
-v = v.*100;
-% pheromone function initialization
-p = 0.0001 .* ones(size(img));     
+v = v.*100; %contains the heuristic value for each pixel
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Parameters settings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %paramete setting
-alpha = 10;      
-beta = 0.1;     
-rho = 0.1;      
-phi = 0.05;     
+alpha = 10;      %influence of pheromone information
+beta = 0.1;      %influence of heuristic information
+rho = 0.1;       %evaporation rate (used to update the pheromones at each ant step)
+phi = 0.05;      %pheromone decay coefficient (used to update the pheromones after every ant has stepped)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Initialization
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% pheromone function initialization
+p = 0.0001 .* ones(size(img));     
 
 ant_total_num = round(sqrt(nrow*ncol));
 ant_pos_idx = zeros(ant_total_num, 2); % record the location of ant
@@ -71,6 +85,10 @@ memory_length = 40;
 ant_memory = zeros(ant_total_num, memory_length);
 total_step_num = 300;
 total_iteration_num = 4;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Make ants perform steps
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for iteration_idx = 1: total_iteration_num
 
@@ -97,11 +115,11 @@ for iteration_idx = 1: total_iteration_num
                 ant_search_range_temp = [rr-1 cc-1; rr-1 cc; rr-1 cc+1; rr cc-1; rr cc+1; rr+1 cc-1; rr+1 cc; rr+1 cc+1];
             end
 
-            %remove the positions our of the image's range
+            %remove the positions out of the image's range
             temp = find(ant_search_range_temp(:,1)>=1 & ant_search_range_temp(:,1)<=nrow & ant_search_range_temp(:,2)>=1 & ant_search_range_temp(:,2)<=ncol);
             ant_search_range = ant_search_range_temp(temp, :);
             
-            %calculate the transit prob. to the neighborhood of current
+            %calculate the transit probability to the neighborhood of current
             %position
             ant_transit_prob_v = zeros(size(ant_search_range,1),1);
             ant_transit_prob_p = zeros(size(ant_search_range,1),1);
@@ -118,8 +136,7 @@ for iteration_idx = 1: total_iteration_num
                 end
             end
             
-%%%%%%%%%%%%%%%%%%%%%%%%%%%% should this be in the for loop that loops over kk?
-            % if all neighborhood are in memory, then the permissible
+            % if all neighborhood positions are in memory, then the permissible
             % search range is RE-calculated. 
             if (sum(sum(ant_transit_prob_v))==0) || (sum(sum(ant_transit_prob_p))==0)                
                 for kk = 1:size(ant_search_range,1)
@@ -128,9 +145,8 @@ for iteration_idx = 1: total_iteration_num
                     ant_transit_prob_p(kk) = p(ant_search_range(kk,1), ant_search_range(kk,2));
                 end
             end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
 
-            %calculate the probabilty of moving to every possible position,
+            %calculate the probability of moving to every possible position,
             %considering v and p. (e.i. for 8 neighbourhood, prob is spread over
             %8 options.
             ant_transit_prob = (ant_transit_prob_v.^alpha) .* (ant_transit_prob_p.^beta) ./ (sum(sum((ant_transit_prob_v.^alpha) .* (ant_transit_prob_p.^beta))));       
@@ -174,6 +190,10 @@ for iteration_idx = 1: total_iteration_num
     end % end of step_idx
 
 end % end of iteration_idx
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Compute edges from pheromone matrix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 T = func_seperate_two_class(p);
 imwrite(uint8(abs((p>=T).*255-255)), gray(256), ['test_edge.bmp'], 'bmp');    
