@@ -1,0 +1,11 @@
+
+kat0_grayscale_edge - zou de baseline moeten worden van het plaatje als grayscale. Maar hij geeft een error bij de kat, maar niet bij de fotograaf. Oorzaak nog niet gevonden...
+
+kat_edge		gewoon som als combinatie
+kat2_edge		functie Y=0.2126R + 0.7152G + 0.0722B als combinatie
+kat3r_edge		Alleen rood edge
+kat3g_edge		Alleen groen edge
+kat3b_edge		Alleen blauw edge
+
+Plan:
+kat4_edge		eerst edges bepalen, daarna die samenvoegen
