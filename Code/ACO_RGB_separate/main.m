@@ -53,7 +53,7 @@ for color =1:3
             end
         end
     end
-    v = v./v_norm;  
+    v = v./v_norm;
     v = v.*100; %contains the heuristic value for each pixel
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
