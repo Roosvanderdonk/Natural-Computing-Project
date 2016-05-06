@@ -1,4 +1,4 @@
-function main
+%function main
 %
 % This is a demo program of J. Tian, W. Yu, L. Chen, and L. Ma, "Image edge 
 % detection using variation-adaptive ant colony optimization,"
@@ -205,17 +205,36 @@ end
 %       Compute edges from pheromone matrix
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+filename = 'kat3';
+
+%select pheromone matrix
 p_red = ps(:,:,1);
 p_green = ps(:,:,2);
 p_blue = ps(:,:,3);
 
+%find threshold
 T_red = func_seperate_two_class(p_red);
 T_green = func_seperate_two_class(p_green);
 T_blue = func_seperate_two_class(p_blue);
 
-imwrite(uint8(abs((p_red >= T_red).*255-255)), gray(256), ['kat3r_edge.jpg'], 'jpg'); 
-imwrite(uint8(abs((p_green >= T_green).*255-255)), gray(256), ['kat3g_edge.jpg'], 'jpg');
-imwrite(uint8(abs((p_blue >= T_blue).*255-255)), gray(256), ['kat3b_edge.jpg'], 'jpg');
+%compute edges
+edges_r = p_red >= T_red;
+edges_g = p_green >= T_green;
+edges_b = p_blue >= T_blue;
+
+%save edges
+imwrite(uint8(abs(edges_r.*255-255)), gray(256), [filename 'r_edge.jpg'], 'jpg'); 
+imwrite(uint8(abs(edges_g.*255-255)), gray(256), [filename 'g_edge.jpg'], 'jpg');
+imwrite(uint8(abs(edges_b.*255-255)), gray(256), [filename 'b_edge.jpg'], 'jpg');
+
+%combine edges
+methods = {'or', 'majority', 'threshold'};
+for i=1:length(methods)
+    method = methods{i};
+    edges = combineEdges( edges_r, edges_g, edges_b, method);
+    imwrite(uint8(abs(edges.*255-255)), gray(256), [filename '_' method '.jpg'], 'jpg'); 
+end
+
 fprintf('Done!\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -224,57 +243,3 @@ fprintf('Done!\n');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function level = func_seperate_two_class(I)
-%   ISODATA Compute global image threshold using iterative isodata method.
-%   LEVEL = ISODATA(I) computes a global threshold (LEVEL) that can be
-%   used to convert an intensity image to a binary image with IM2BW. LEVEL
-%   is a normalized intensity value that lies in the range [0, 1].
-%   This iterative technique for choosing a threshold was developed by Ridler and Calvard .
-%   The histogram is initially segmented into two parts using a starting threshold value such as 0 = 2B-1, 
-%   half the maximum dynamic range. 
-%   The sample mean (mf,0) of the gray values associated with the foreground pixels and the sample mean (mb,0) 
-%   of the gray values associated with the background pixels are computed. A new threshold value 1 is now computed 
-%   as the average of these two sample means. The process is repeated, based upon the new threshold, 
-%   until the threshold value does not change any more. 
-%
-% Reference :T.W. Ridler, S. Calvard, Picture thresholding using an iterative selection method, 
-%            IEEE Trans. System, Man and Cybernetics, SMC-8 (1978) 630-632.
-
-% Convert all N-D arrays into a single column.  Convert to uint8 for
-% fastest histogram computation.
-
-I = I(:);
-
-% STEP 1: Compute mean intensity of image from histogram, set T=mean(I)
-[counts, N]=hist(I,256);
-i=1;
-mu=cumsum(counts);
-T(i)=(sum(N.*counts))/mu(end);
-
-% STEP 2: compute Mean above T (MAT) and Mean below T (MBT) using T from
-% step 1
-mu2=cumsum(counts(N<=T(i)));
-MBT=sum(N(N<=T(i)).*counts(N<=T(i)))/mu2(end);
-
-mu3=cumsum(counts(N>T(i)));
-MAT=sum(N(N>T(i)).*counts(N>T(i)))/mu3(end);
-i=i+1;
-T(i)=(MAT+MBT)/2;
-
-% STEP 3 to n: repeat step 2 if T(i)~=T(i-1)
-Threshold=T(i);
-while abs(T(i)-T(i-1))>=1
-    mu2=cumsum(counts(N<=T(i)));
-    MBT=sum(N(N<=T(i)).*counts(N<=T(i)))/mu2(end);
-    
-    mu3=cumsum(counts(N>T(i)));
-    MAT=sum(N(N>T(i)).*counts(N>T(i)))/mu3(end);
-    
-    i=i+1;
-    T(i)=(MAT+MBT)/2; 
-    Threshold=T(i);
-end
-
-% Normalize the threshold to the range [i, 1].
-level = Threshold;
