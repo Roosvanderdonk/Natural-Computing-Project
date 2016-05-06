@@ -10,6 +10,8 @@ function main
 close all; clear all; clc;
 
 img = double(imread('grayscale_kat.jpg'))./255;
+img = img(:,:,1); %for some reason, this image still has a third dimension,
+ %but all three of them are identical.
 [nrow, ncol] = size(img);
 
 fprintf('Welcome to demo program.\nPlease wait......\n');
