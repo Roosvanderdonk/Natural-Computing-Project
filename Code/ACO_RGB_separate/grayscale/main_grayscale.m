@@ -1,4 +1,4 @@
-%function main
+function main
 %
 % This is a demo program of J. Tian, W. Yu, L. Chen, and L. Ma, "Image edge 
 % detection using variation-adaptive ant colony optimization,"
@@ -9,22 +9,23 @@
 
 close all; clear all; clc;
 
-%%read in greyscale image
-%img = double(imread('pepperssmall.png'))./255;
-
-% read in color image and convert to greyscale image
-rgb = imread('pepperssmall.png')
-img = single(rgb2gray(rgb)) / 255;
-
+img = double(imread('grayscale_kat.jpg'))./255;
+img = img(:,:,1); %for some reason, this image still has a third dimension,
+ %but all three of them are identical.
 [nrow, ncol] = size(img);
 
 fprintf('Welcome to demo program.\nPlease wait......\n');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Compute heuristic values
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 v = zeros(size(img));
 v_norm = 0;
 for rr =1:nrow
     for cc=1:ncol
-        %defination of clique
+        %definition of clique = the area that is used to compute the
+        %heuristic value for this pixel
         temp1 = [rr-2 cc-1; rr-2 cc+1; rr-1 cc-2; rr-1 cc-1; rr-1 cc; rr-1 cc+1; rr-1 cc+2; rr cc-1];
         temp2 = [rr+2 cc+1; rr+2 cc-1; rr+1 cc+2; rr+1 cc+1; rr+1 cc; rr+1 cc-1; rr+1 cc-2; rr cc+1];
 
@@ -33,7 +34,7 @@ for rr =1:nrow
         temp11 = temp1(temp0, :);
         temp22 = temp2(temp0, :);
 
-        temp00 = zeros(size(temp11,1));
+        temp00 = zeros(size(temp11,1)); %fill temp00 with actual intensity differences
         for kk = 1:size(temp11,1)
             temp00(kk) = abs(img(temp11(kk,1), temp11(kk,2))-img(temp22(kk,1), temp22(kk,2)));
         end
@@ -43,23 +44,31 @@ for rr =1:nrow
             v_norm = v_norm + v(rr, cc);
         else
             lambda = 10;
-            temp00 = sin(pi .* temp00./2./lambda);
+            temp00 = sin(pi .* temp00./2./lambda); %this corresponds to function (9) in the paper.
             v(rr, cc) = sum(sum(temp00.^2));
             v_norm = v_norm + v(rr, cc);
         end
     end
 end
-
 v = v./v_norm;  
-v = v.*100;
-% pheromone function initialization
-p = 0.0001 .* ones(size(img));     
+v = v.*100; %contains the heuristic value for each pixel
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Parameters settings
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %paramete setting
-alpha = 10; % pheromone information influence     
-beta = 0.1; % heuristic information influence 
-rho = 0.1; % evaporation rate     
-phi = 0.05; % pheromone decay coefficent
+alpha = 10;      %influence of pheromone information
+beta = 0.1;      %influence of heuristic information
+rho = 0.1;       %evaporation rate (used to update the pheromones at each ant step)
+phi = 0.05;      %pheromone decay coefficient (used to update the pheromones after every ant has stepped)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Initialization
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% pheromone function initialization
+p = 0.0001 .* ones(size(img));     
 
 ant_total_num = round(sqrt(nrow*ncol));
 ant_pos_idx = zeros(ant_total_num, 2); % record the location of ant
@@ -78,6 +87,10 @@ memory_length = 40;
 ant_memory = zeros(ant_total_num, memory_length);
 total_step_num = 300;
 total_iteration_num = 4;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Make ants perform steps
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 for iteration_idx = 1: total_iteration_num
 
@@ -104,11 +117,11 @@ for iteration_idx = 1: total_iteration_num
                 ant_search_range_temp = [rr-1 cc-1; rr-1 cc; rr-1 cc+1; rr cc-1; rr cc+1; rr+1 cc-1; rr+1 cc; rr+1 cc+1];
             end
 
-            %remove the positions our of the image's range
+            %remove the positions out of the image's range
             temp = find(ant_search_range_temp(:,1)>=1 & ant_search_range_temp(:,1)<=nrow & ant_search_range_temp(:,2)>=1 & ant_search_range_temp(:,2)<=ncol);
             ant_search_range = ant_search_range_temp(temp, :);
             
-            %calculate the transit prob. to the neighborhood of current
+            %calculate the transit probability to the neighborhood of current
             %position
             ant_transit_prob_v = zeros(size(ant_search_range,1),1);
             ant_transit_prob_p = zeros(size(ant_search_range,1),1);
@@ -125,7 +138,7 @@ for iteration_idx = 1: total_iteration_num
                 end
             end
             
-            % if all neighborhood are in memory, then the permissible
+            % if all neighborhood positions are in memory, then the permissible
             % search range is RE-calculated. 
             if (sum(sum(ant_transit_prob_v))==0) || (sum(sum(ant_transit_prob_p))==0)                
                 for kk = 1:size(ant_search_range,1)
@@ -135,7 +148,7 @@ for iteration_idx = 1: total_iteration_num
                 end
             end
 
-            %calculate the probabilty of moving to every possible position,
+            %calculate the probability of moving to every possible position,
             %considering v and p. (e.i. for 8 neighbourhood, prob is spread over
             %8 options.
             ant_transit_prob = (ant_transit_prob_v.^alpha) .* (ant_transit_prob_p.^beta) ./ (sum(sum((ant_transit_prob_v.^alpha) .* (ant_transit_prob_p.^beta))));       
@@ -180,70 +193,71 @@ for iteration_idx = 1: total_iteration_num
 
 end % end of iteration_idx
 
-T = func_seperate_two_class(p);
-imwrite(uint8(abs((p>=T).*255-255)), gray(256), ['test_edge.bmp'], 'bmp');  
-imshow(uint8(abs((p>=T).*255-255)))
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Compute edges from pheromone matrix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+T = func_seperate_two_class(p);
+imwrite(uint8(abs((p>=T).*255-255)), gray(256), ['kat0_grayscale_edge.jpg'], 'jpg');    
 fprintf('Done!\n');
-% 
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   Inner Function  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 
-% function level = func_seperate_two_class(I)
-% %   ISODATA Compute global image threshold using iterative isodata method.
-% %   LEVEL = ISODATA(I) computes a global threshold (LEVEL) that can be
-% %   used to convert an intensity image to a binary image with IM2BW. LEVEL
-% %   is a normalized intensity value that lies in the range [0, 1].
-% %   This iterative technique for choosing a threshold was developed by Ridler and Calvard .
-% %   The histogram is initially segmented into two parts using a starting threshold value such as 0 = 2B-1, 
-% %   half the maximum dynamic range. 
-% %   The sample mean (mf,0) of the gray values associated with the foreground pixels and the sample mean (mb,0) 
-% %   of the gray values associated with the background pixels are computed. A new threshold value 1 is now computed 
-% %   as the average of these two sample means. The process is repeated, based upon the new threshold, 
-% %   until the threshold value does not change any more. 
-% %
-% % Reference :T.W. Ridler, S. Calvard, Picture thresholding using an iterative selection method, 
-% %            IEEE Trans. System, Man and Cybernetics, SMC-8 (1978) 630-632.
-% 
-% % Convert all N-D arrays into a single column.  Convert to uint8 for
-% % fastest histogram computation.
-% 
-% I = I(:);
-% 
-% % STEP 1: Compute mean intensity of image from histogram, set T=mean(I)
-% [counts, N]=hist(I,256);
-% i=1;
-% mu=cumsum(counts);
-% T(i)=(sum(N.*counts))/mu(end);
-% 
-% % STEP 2: compute Mean above T (MAT) and Mean below T (MBT) using T from
-% % step 1
-% mu2=cumsum(counts(N<=T(i)));
-% MBT=sum(N(N<=T(i)).*counts(N<=T(i)))/mu2(end);
-% 
-% mu3=cumsum(counts(N>T(i)));
-% MAT=sum(N(N>T(i)).*counts(N>T(i)))/mu3(end);
-% i=i+1;
-% T(i)=(MAT+MBT)/2;
-% 
-% % STEP 3 to n: repeat step 2 if T(i)~=T(i-1)
-% Threshold=T(i);
-% while abs(T(i)-T(i-1))>=1
-%     mu2=cumsum(counts(N<=T(i)));
-%     MBT=sum(N(N<=T(i)).*counts(N<=T(i)))/mu2(end);
-%     
-%     mu3=cumsum(counts(N>T(i)));
-%     MAT=sum(N(N>T(i)).*counts(N>T(i)))/mu3(end);
-%     
-%     i=i+1;
-%     T(i)=(MAT+MBT)/2; 
-%     Threshold=T(i);
-% end
-% 
-% % Normalize the threshold to the range [i, 1].
-% level = Threshold;
-% end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   Inner Function  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function level = func_seperate_two_class(I)
+%   ISODATA Compute global image threshold using iterative isodata method.
+%   LEVEL = ISODATA(I) computes a global threshold (LEVEL) that can be
+%   used to convert an intensity image to a binary image with IM2BW. LEVEL
+%   is a normalized intensity value that lies in the range [0, 1].
+%   This iterative technique for choosing a threshold was developed by Ridler and Calvard .
+%   The histogram is initially segmented into two parts using a starting threshold value such as 0 = 2B-1, 
+%   half the maximum dynamic range. 
+%   The sample mean (mf,0) of the gray values associated with the foreground pixels and the sample mean (mb,0) 
+%   of the gray values associated with the background pixels are computed. A new threshold value 1 is now computed 
+%   as the average of these two sample means. The process is repeated, based upon the new threshold, 
+%   until the threshold value does not change any more. 
+%
+% Reference :T.W. Ridler, S. Calvard, Picture thresholding using an iterative selection method, 
+%            IEEE Trans. System, Man and Cybernetics, SMC-8 (1978) 630-632.
+
+% Convert all N-D arrays into a single column.  Convert to uint8 for
+% fastest histogram computation.
+
+I = I(:);
+
+% STEP 1: Compute mean intensity of image from histogram, set T=mean(I)
+[counts, N]=hist(I,256);
+i=1;
+mu=cumsum(counts);
+T(i)=(sum(N.*counts))/mu(end);
+
+% STEP 2: compute Mean above T (MAT) and Mean below T (MBT) using T from
+% step 1
+mu2=cumsum(counts(N<=T(i)));
+MBT=sum(N(N<=T(i)).*counts(N<=T(i)))/mu2(end);
+
+mu3=cumsum(counts(N>T(i)));
+MAT=sum(N(N>T(i)).*counts(N>T(i)))/mu3(end);
+i=i+1;
+T(i)=(MAT+MBT)/2;
+
+% STEP 3 to n: repeat step 2 if T(i)~=T(i-1)
+Threshold=T(i);
+while abs(T(i)-T(i-1))>=1
+    mu2=cumsum(counts(N<=T(i)));
+    MBT=sum(N(N<=T(i)).*counts(N<=T(i)))/mu2(end);
+    
+    mu3=cumsum(counts(N>T(i)));
+    MAT=sum(N(N>T(i)).*counts(N>T(i)))/mu3(end);
+    
+    i=i+1;
+    T(i)=(MAT+MBT)/2; 
+    Threshold=T(i);
+end
+
+% Normalize the threshold to the range [i, 1].
+level = Threshold;

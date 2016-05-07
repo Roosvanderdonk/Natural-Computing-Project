@@ -1,0 +1,13 @@
+
+kat0_grayscale_edge - baseline van plaatje als grayscale.
+
+kat_edge		gewoon som als combinatie
+kat2_edge		functie Y=0.2126R + 0.7152G + 0.0722B als combinatie
+
+kat3r_edge		Alleen rood edge
+kat3g_edge		Alleen groen edge
+kat3b_edge		Alleen blauw edge
+
+kat3_majority	Pixel wanneer 2 van de drie kleuren ook de pixel hadden.
+kat3_or			Alle r, g, en b edges gewoon overnemen.
+kat3_threshold	Een nieuwe threshold berekenen, ik gok dat iets niet helemaal klopte.
