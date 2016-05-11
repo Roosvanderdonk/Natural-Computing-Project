@@ -1,4 +1,4 @@
- figure, im = imread('pepperssmall.png'); imshow(im)
+ figure, im = imread('C:\Users\roosv_000\Documents\Natural-Computing-Project\Dataset\18.jpg'); imshow(im)
 
     %get color edges and normalize magnitude
     C = coloredges(im);
@@ -33,4 +33,4 @@ CC=C;
         CC(CC<0.9999)=0;
         figure
         imshow(CC)
-        imwrite(CC, ['test_edge.png'], 'png');  
+        imwrite(CC, ['C:\Users\roosv_000\Documents\Natural-Computing-Project\Dataset\18_edge.jpg'], 'jpg');  

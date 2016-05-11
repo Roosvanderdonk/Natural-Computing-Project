@@ -9,7 +9,7 @@ function main
 
 close all; clear all; clc;
 
-img = double(imread('C:\Users\roosv_000\Documents\Natural-Computing-Project\grayscale_14.jpg'))./255;
+img = double(imread('grayscale_kat.jpg'))./255;
 img = img(:,:,1); %for some reason, this image still has a third dimension,
  %but all three of them are identical.
 [nrow, ncol] = size(img);
@@ -198,7 +198,7 @@ end % end of iteration_idx
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 T = func_seperate_two_class(p);
-imwrite(uint8(abs((p>=T).*255-255)), gray(256), ['14_grayscale_edge.jpg'], 'jpg');    
+imwrite(uint8(abs((p>=T).*255-255)), gray(256), ['kat0_grayscale_edge.jpg'], 'jpg');    
 fprintf('Done!\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
