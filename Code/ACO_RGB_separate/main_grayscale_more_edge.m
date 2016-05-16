@@ -8,15 +8,20 @@ function main
 %
 
 close all; clear all; clc;
-fprintf('Welcome to demo program.\n');
-colorimage = double(imread('kat.jpg'));
 
-% pheromone matrices
-ps = zeros(size(colorimage));
+fprintf('Welcome to program. \n');
 
-for color =1:3
-    img = colorimage(:,:,color)./255;
-    fprintf('Analyzing new color.\n');
+for imageIndex = 1:17
+
+    fprintf(['Analyzing image ' num2str(imageIndex) '\n']);
+    
+    %create grayscale image
+    %filename = [num2str(imageIndex) '.jpg'];
+    %to_grayscale( filename, imageIndex)
+    
+    %read in grayscale image
+    img = double(imread([num2str(imageIndex) '_grayscale.jpg']))./255;
+    img = img(:,:,1); %only take first plane (for some reason there are three)
     [nrow, ncol] = size(img);
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -196,85 +201,14 @@ for color =1:3
 
     end % end of iteration_idx
 
-    %save pheromone matrix of this color
-    ps(:,:,color) = p;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %       Compute edges from pheromone matrix
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    T = 0.002;
+    imwrite(uint8(abs((p>=T).*255-255)), gray(256), [num2str(imageIndex) '_gray_ACO_threshold0002.jpg'], 'jpg');  
     
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%       Compute edges from pheromone matrix
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-p_red = ps(:,:,1);
-p_green = ps(:,:,2);
-p_blue = ps(:,:,3);
-
-T_red = func_seperate_two_class(p_red);
-T_green = func_seperate_two_class(p_green);
-T_blue = func_seperate_two_class(p_blue);
-
-imwrite(uint8(abs((p_red >= T_red).*255-255)), gray(256), ['kat3r_edge.jpg'], 'jpg'); 
-imwrite(uint8(abs((p_green >= T_green).*255-255)), gray(256), ['kat3g_edge.jpg'], 'jpg');
-imwrite(uint8(abs((p_blue >= T_blue).*255-255)), gray(256), ['kat3b_edge.jpg'], 'jpg');
+    
 fprintf('Done!\n');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   Inner Function  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function level = func_seperate_two_class(I)
-%   ISODATA Compute global image threshold using iterative isodata method.
-%   LEVEL = ISODATA(I) computes a global threshold (LEVEL) that can be
-%   used to convert an intensity image to a binary image with IM2BW. LEVEL
-%   is a normalized intensity value that lies in the range [0, 1].
-%   This iterative technique for choosing a threshold was developed by Ridler and Calvard .
-%   The histogram is initially segmented into two parts using a starting threshold value such as 0 = 2B-1, 
-%   half the maximum dynamic range. 
-%   The sample mean (mf,0) of the gray values associated with the foreground pixels and the sample mean (mb,0) 
-%   of the gray values associated with the background pixels are computed. A new threshold value 1 is now computed 
-%   as the average of these two sample means. The process is repeated, based upon the new threshold, 
-%   until the threshold value does not change any more. 
-%
-% Reference :T.W. Ridler, S. Calvard, Picture thresholding using an iterative selection method, 
-%            IEEE Trans. System, Man and Cybernetics, SMC-8 (1978) 630-632.
-
-% Convert all N-D arrays into a single column.  Convert to uint8 for
-% fastest histogram computation.
-
-I = I(:);
-
-% STEP 1: Compute mean intensity of image from histogram, set T=mean(I)
-[counts, N]=hist(I,256);
-i=1;
-mu=cumsum(counts);
-T(i)=(sum(N.*counts))/mu(end);
-
-% STEP 2: compute Mean above T (MAT) and Mean below T (MBT) using T from
-% step 1
-mu2=cumsum(counts(N<=T(i)));
-MBT=sum(N(N<=T(i)).*counts(N<=T(i)))/mu2(end);
-
-mu3=cumsum(counts(N>T(i)));
-MAT=sum(N(N>T(i)).*counts(N>T(i)))/mu3(end);
-i=i+1;
-T(i)=(MAT+MBT)/2;
-
-% STEP 3 to n: repeat step 2 if T(i)~=T(i-1)
-Threshold=T(i);
-while abs(T(i)-T(i-1))>=1
-    mu2=cumsum(counts(N<=T(i)));
-    MBT=sum(N(N<=T(i)).*counts(N<=T(i)))/mu2(end);
-    
-    mu3=cumsum(counts(N>T(i)));
-    MAT=sum(N(N>T(i)).*counts(N>T(i)))/mu3(end);
-    
-    i=i+1;
-    T(i)=(MAT+MBT)/2; 
-    Threshold=T(i);
-end
-
-% Normalize the threshold to the range [i, 1].
-level = Threshold;

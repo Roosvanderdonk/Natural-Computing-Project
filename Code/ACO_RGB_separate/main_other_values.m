@@ -8,18 +8,29 @@
 %
 
 close all; clear all; clc;
-fprintf('Welcome to program.\n');
+fprintf('Welcome to demo program.\n');
+colorimage = double(imread('kat.jpg'));
 
-for imageIndex = 1:17
+%define all types of color images
+imageTypes = {'RGB', 'YIQ', 'HSI', 'LAB'};
+[x,y,z] = size(colorimage);
+images = zeros(x,y,z,4);
+images(:,:,:,1) = colorimage;
+images(:,:,:,2) = colorspace('RGB->YIQ', colorimage);
+images(:,:,:,3) = colorspace('RGB->HSI', colorimage);
+images(:,:,:,4) = colorspace('RGB->LAB', colorimage);
+
+% pheromone matrices
+ps = zeros(x,y,z,4);
+
+for imageIndex=1:4
+    image = images(:,:,:,imageIndex);
+    maxvalue = max(max(max(image)));
     
-    fprintf(['Analyzing image ' num2str(imageIndex) '\n']);
-    colorimage = double(imread([num2str(imageIndex) '.jpg']));
-
-    % pheromone matrices
-    ps = zeros(size(colorimage));
+    fprintf(['Analyzing image type: ' imageTypes{imageIndex} '\n']);
     
     for color =1:3
-        img = colorimage(:,:,color)./255;
+        plane = image(:,:,color)./maxvalue;
         fprintf('Analyzing new color.\n');
         [nrow, ncol] = size(img);
 
@@ -75,7 +86,7 @@ for imageIndex = 1:17
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         % pheromone function initialization
-        p = 0.0001 .* ones(size(img));     
+        plane = 0.0001 .* ones(size(img));     
 
         ant_total_num = round(sqrt(nrow*ncol));
         ant_pos_idx = zeros(ant_total_num, 2); % record the location of ant
@@ -138,7 +149,7 @@ for imageIndex = 1:17
                         temp = (ant_search_range(kk,1)-1)*ncol + ant_search_range(kk,2);
                         if length(find(ant_memory(ant_idx,:)==temp))==0 %not in ant's memory
                             ant_transit_prob_v(kk) = v(ant_search_range(kk,1), ant_search_range(kk,2));
-                            ant_transit_prob_p(kk) = p(ant_search_range(kk,1), ant_search_range(kk,2));
+                            ant_transit_prob_p(kk) = plane(ant_search_range(kk,1), ant_search_range(kk,2));
                         else %is in ant's memory, than make probabilaties of going there zero.   
                             ant_transit_prob_v(kk) = 0;
                             ant_transit_prob_p(kk) = 0;                    
@@ -151,7 +162,7 @@ for imageIndex = 1:17
                         for kk = 1:size(ant_search_range,1)
                             temp = (ant_search_range(kk,1)-1)*ncol + ant_search_range(kk,2);
                             ant_transit_prob_v(kk) = v(ant_search_range(kk,1), ant_search_range(kk,2));
-                            ant_transit_prob_p(kk) = p(ant_search_range(kk,1), ant_search_range(kk,2));
+                            ant_transit_prob_p(kk) = plane(ant_search_range(kk,1), ant_search_range(kk,2));
                         end
                     end
 
@@ -188,33 +199,39 @@ for imageIndex = 1:17
                     end
 
                     %update the pheromone function per ant
-                    p = ((1-rho).*p + rho.*delta_p_current.*v).*delta_p_current + p.*(abs(1-delta_p_current));
+                    plane = ((1-rho).*plane + rho.*delta_p_current.*v).*delta_p_current + plane.*(abs(1-delta_p_current));
 
                 end % end of ant_idx
 
                 % update the pheromone function when all ants did their idx step
                 delta_p = (delta_p + (delta_p_current>0))>0;
-                p = (1-phi).*p;
+                plane = (1-phi).*plane;
 
             end % end of step_idx
 
         end % end of iteration_idx
 
-        %save pheromone matrix of this color
-        ps(:,:,color) = p;
+        %save pheromone matrix of this color for this image
+        ps(:,:,color,imageIndex) = plane;
 
+    %end for loop over colors
     end
+%end for loop over images
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Compute edges from pheromone matrix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %       Compute edges from pheromone matrix
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+filename = 'kat4';
 
-    filename = num2str(imageIndex);
+for imageIndex=1:4
 
+    imageType = imageTypes{imageIndex};
+    
     %select pheromone matrix
-    p_red = ps(:,:,1);
-    p_green = ps(:,:,2);
-    p_blue = ps(:,:,3);
+    p_red = ps(:,:,1,imageIndex);
+    p_green = ps(:,:,2,imageIndex);
+    p_blue = ps(:,:,3,imageIndex);
 
     %find threshold
     T_red = func_seperate_two_class(p_red);
@@ -227,16 +244,20 @@ for imageIndex = 1:17
     edges_b = p_blue >= T_blue;
 
     %save edges
-    imwrite(uint8(abs(edges_r.*255-255)), gray(256), [filename '_r_edge.jpg'], 'jpg'); 
-    imwrite(uint8(abs(edges_g.*255-255)), gray(256), [filename '_g_edge.jpg'], 'jpg');
-    imwrite(uint8(abs(edges_b.*255-255)), gray(256), [filename '_b_edge.jpg'], 'jpg');
+    imwrite(uint8(abs(edges_r.*255-255)), gray(256), [filename '_' imageType '1_edge.jpg'], 'jpg'); 
+    imwrite(uint8(abs(edges_g.*255-255)), gray(256), [filename '_' imageType '2_edge.jpg'], 'jpg');
+    imwrite(uint8(abs(edges_b.*255-255)), gray(256), [filename '_' imageType '3_edge.jpg'], 'jpg');
 
     %combine edges
-    edges = combineEdges( edges_r, edges_g, edges_b, 'or');
-    imwrite(uint8(abs(edges.*255-255)), gray(256), [filename '_RGB_edge.jpg'], 'jpg'); 
+    methods = {'or', 'majority', 'threshold'};
+    for i=1:length(methods)
+        method = methods{i};
+        edges = combineEdges( edges_r, edges_g, edges_b, method);
+        imwrite(uint8(abs(edges.*255-255)), gray(256), [filename '_' imageType '_' method '.jpg'], 'jpg'); 
+    end
 
 end
-    
+
 fprintf('Done!\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

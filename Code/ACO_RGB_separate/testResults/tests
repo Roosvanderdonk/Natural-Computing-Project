@@ -1,0 +1,24 @@
+
+kat0_grayscale_edge - baseline van plaatje als grayscale.
+
+kat_edge		gewoon som als combinatie
+kat2_edge		functie Y=0.2126R + 0.7152G + 0.0722B als combinatie
+
+kat3r_edge		Alleen rood edge
+kat3g_edge		Alleen groen edge
+kat3b_edge		Alleen blauw edge
+
+kat3_majority	Pixel wanneer 2 van de drie kleuren ook de pixel hadden.
+kat3_or			Alle r, g, en b edges gewoon overnemen.
+kat3_threshold	Een nieuwe threshold berekenen, ik gok dat iets niet helemaal klopte.
+
+kat4_colorspace_method	method = majority, or, threshold, zie kat3. Colorspace:
+	_HSI		Hue Saturation Intensity
+	_LAB		CIELAB
+	_RGB		RGB
+	_YIQ		YIQ
+	
+Lijkt niet goed te werken voor andere colorspaces dan RGB. HSI ziet er veelbelovend uit, maar de H waarde geeft rare edges. Daarom:
+
+kat5_HSI_SIonly	Alleen de S en I waarden combineren. H waarde negeren. Maar dit geeft geen prachtig resultaat. Alsnog rare friemels links onderaan. 
+

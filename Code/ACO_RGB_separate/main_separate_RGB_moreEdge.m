@@ -64,12 +64,19 @@ for imageIndex = 1:17
         %       Parameters settings
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        %paramete setting
+        %parameter setting
         alpha = 10;      %influence of pheromone information
         beta = 0.1;      %influence of heuristic information
-        rho = 0.1;       %evaporation rate (used to update the pheromones at each ant step)
+        rho = 0.1; %0.1      %evaporation rate (used to update the pheromones at each ant step)
         phi = 0.05;      %pheromone decay coefficient (used to update the pheromones after every ant has stepped)
 
+        search_clique_mode = '8'; %either '4' or '8' depending on if you look at 4 or 8 neighbourhood
+        memory_length = 40; %40
+        
+        total_step_num = 300; %300
+        total_iteration_num = 4;
+        ant_total_num = round(sqrt(nrow*ncol));
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %       Initialization
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -77,7 +84,6 @@ for imageIndex = 1:17
         % pheromone function initialization
         p = 0.0001 .* ones(size(img));     
 
-        ant_total_num = round(sqrt(nrow*ncol));
         ant_pos_idx = zeros(ant_total_num, 2); % record the location of ant
 
         % initialize the positions of ants
@@ -86,15 +92,10 @@ for imageIndex = 1:17
         ant_pos_idx(:,1) = round(1 + (nrow-1) * temp(:,1)); %row index
         ant_pos_idx(:,2) = round(1 + (ncol-1) * temp(:,2)); %column index
 
-        search_clique_mode = '8'; %either '4' or '8' depending on if you look at 4 or 8 neighbourhood
-        memory_length = 40;
-
         % record the positions in ant's memory, convert 2D position-index (row, col) into
         % 1D position-index
         ant_memory = zeros(ant_total_num, memory_length);
-        total_step_num = 300;
-        total_iteration_num = 4;
-
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %       Make ants perform steps
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -209,31 +210,28 @@ for imageIndex = 1:17
     %       Compute edges from pheromone matrix
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    filename = num2str(imageIndex);
+    filename = [num2str(imageIndex) '_moreEdge'];
 
+    save(['pheromone' num2str(imageIndex)],'ps');
+    
     %select pheromone matrix
     p_red = ps(:,:,1);
     p_green = ps(:,:,2);
     p_blue = ps(:,:,3);
 
     %find threshold
-    T_red = func_seperate_two_class(p_red);
-    T_green = func_seperate_two_class(p_green);
-    T_blue = func_seperate_two_class(p_blue);
-
+    T_red = 0.002;
+    T_green = 0.002;
+    T_blue = 0.002;
+    
     %compute edges
     edges_r = p_red >= T_red;
     edges_g = p_green >= T_green;
     edges_b = p_blue >= T_blue;
 
-    %save edges
-    imwrite(uint8(abs(edges_r.*255-255)), gray(256), [filename '_r_edge.jpg'], 'jpg'); 
-    imwrite(uint8(abs(edges_g.*255-255)), gray(256), [filename '_g_edge.jpg'], 'jpg');
-    imwrite(uint8(abs(edges_b.*255-255)), gray(256), [filename '_b_edge.jpg'], 'jpg');
-
     %combine edges
     edges = combineEdges( edges_r, edges_g, edges_b, 'or');
-    imwrite(uint8(abs(edges.*255-255)), gray(256), [filename '_RGB_edge.jpg'], 'jpg'); 
+    imwrite(uint8(abs(edges.*255-255)), gray(256), [filename '_RGB_threshold0002.jpg'], 'jpg'); 
 
 end
     

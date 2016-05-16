@@ -8,26 +8,37 @@
 %
 
 close all; clear all; clc;
-fprintf('Welcome to program.\n');
+fprintf('Welcome to demo program.\n');
+colorimage = double(imread('kat.jpg'));
 
-for imageIndex = 1:17
+%define all types of color images
+imageTypes = {'RGB', 'YIQ', 'HSI', 'LAB'};
+[x,y,z] = size(colorimage);
+images = zeros(x,y,z,4);
+images(:,:,:,1) = colorimage;
+images(:,:,:,2) = colorspace('RGB->YIQ', colorimage);
+images(:,:,:,3) = colorspace('RGB->HSI', colorimage);
+images(:,:,:,4) = colorspace('RGB->LAB', colorimage);
+
+% pheromone matrices
+ps = zeros(x,y,z,4);
+
+for imageIndex=3
+    image = images(:,:,:,imageIndex);
+    maxvalue = max(max(max(image)));
     
-    fprintf(['Analyzing image ' num2str(imageIndex) '\n']);
-    colorimage = double(imread([num2str(imageIndex) '.jpg']));
-
-    % pheromone matrices
-    ps = zeros(size(colorimage));
+    fprintf(['Analyzing image type: ' imageTypes{imageIndex} '\n']);
     
     for color =1:3
-        img = colorimage(:,:,color)./255;
+        plan = image(:,:,color)./maxvalue;
         fprintf('Analyzing new color.\n');
-        [nrow, ncol] = size(img);
+        [nrow, ncol] = size(plan);
 
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %       Compute heuristic values
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-        v = zeros(size(img));
+        v = zeros(size(plan));
         v_norm = 0;
         for rr =1:nrow
             for cc=1:ncol
@@ -43,7 +54,7 @@ for imageIndex = 1:17
 
                 temp00 = zeros(size(temp11,1)); %fill temp00 with actual intensity differences
                 for kk = 1:size(temp11,1)
-                    temp00(kk) = abs(img(temp11(kk,1), temp11(kk,2))-img(temp22(kk,1), temp22(kk,2)));
+                    temp00(kk) = abs(plan(temp11(kk,1), temp11(kk,2))-plan(temp22(kk,1), temp22(kk,2)));
                 end
 
                 if size(temp11,1) == 0
@@ -75,7 +86,7 @@ for imageIndex = 1:17
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
         % pheromone function initialization
-        p = 0.0001 .* ones(size(img));     
+        plan = 0.0001 .* ones(size(plan));     
 
         ant_total_num = round(sqrt(nrow*ncol));
         ant_pos_idx = zeros(ant_total_num, 2); % record the location of ant
@@ -138,7 +149,7 @@ for imageIndex = 1:17
                         temp = (ant_search_range(kk,1)-1)*ncol + ant_search_range(kk,2);
                         if length(find(ant_memory(ant_idx,:)==temp))==0 %not in ant's memory
                             ant_transit_prob_v(kk) = v(ant_search_range(kk,1), ant_search_range(kk,2));
-                            ant_transit_prob_p(kk) = p(ant_search_range(kk,1), ant_search_range(kk,2));
+                            ant_transit_prob_p(kk) = plan(ant_search_range(kk,1), ant_search_range(kk,2));
                         else %is in ant's memory, than make probabilaties of going there zero.   
                             ant_transit_prob_v(kk) = 0;
                             ant_transit_prob_p(kk) = 0;                    
@@ -151,7 +162,7 @@ for imageIndex = 1:17
                         for kk = 1:size(ant_search_range,1)
                             temp = (ant_search_range(kk,1)-1)*ncol + ant_search_range(kk,2);
                             ant_transit_prob_v(kk) = v(ant_search_range(kk,1), ant_search_range(kk,2));
-                            ant_transit_prob_p(kk) = p(ant_search_range(kk,1), ant_search_range(kk,2));
+                            ant_transit_prob_p(kk) = plan(ant_search_range(kk,1), ant_search_range(kk,2));
                         end
                     end
 
@@ -188,33 +199,39 @@ for imageIndex = 1:17
                     end
 
                     %update the pheromone function per ant
-                    p = ((1-rho).*p + rho.*delta_p_current.*v).*delta_p_current + p.*(abs(1-delta_p_current));
+                    plan = ((1-rho).*plan + rho.*delta_p_current.*v).*delta_p_current + plan.*(abs(1-delta_p_current));
 
                 end % end of ant_idx
 
                 % update the pheromone function when all ants did their idx step
                 delta_p = (delta_p + (delta_p_current>0))>0;
-                p = (1-phi).*p;
+                plan = (1-phi).*plan;
 
             end % end of step_idx
 
         end % end of iteration_idx
 
-        %save pheromone matrix of this color
-        ps(:,:,color) = p;
+        %save pheromone matrix of this color for this image
+        ps(:,:,color,imageIndex) = plan;
 
+    %end for loop over colors
     end
+%end for loop over images
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%       Compute edges from pheromone matrix
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %       Compute edges from pheromone matrix
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+filename = 'kat5';
 
-    filename = num2str(imageIndex);
+for imageIndex=3
 
+    imageType = imageTypes{imageIndex};
+    
     %select pheromone matrix
-    p_red = ps(:,:,1);
-    p_green = ps(:,:,2);
-    p_blue = ps(:,:,3);
+    p_red = ps(:,:,1,imageIndex);
+    p_green = ps(:,:,2,imageIndex);
+    p_blue = ps(:,:,3,imageIndex);
 
     %find threshold
     T_red = func_seperate_two_class(p_red);
@@ -227,16 +244,16 @@ for imageIndex = 1:17
     edges_b = p_blue >= T_blue;
 
     %save edges
-    imwrite(uint8(abs(edges_r.*255-255)), gray(256), [filename '_r_edge.jpg'], 'jpg'); 
-    imwrite(uint8(abs(edges_g.*255-255)), gray(256), [filename '_g_edge.jpg'], 'jpg');
-    imwrite(uint8(abs(edges_b.*255-255)), gray(256), [filename '_b_edge.jpg'], 'jpg');
+    imwrite(uint8(abs(edges_r.*255-255)), gray(256), [filename '_' imageType '1_edge.jpg'], 'jpg'); 
+    imwrite(uint8(abs(edges_g.*255-255)), gray(256), [filename '_' imageType '2_edge.jpg'], 'jpg');
+    imwrite(uint8(abs(edges_b.*255-255)), gray(256), [filename '_' imageType '3_edge.jpg'], 'jpg');
 
     %combine edges
-    edges = combineEdges( edges_r, edges_g, edges_b, 'or');
-    imwrite(uint8(abs(edges.*255-255)), gray(256), [filename '_RGB_edge.jpg'], 'jpg'); 
+    edges = combineEdgesHSI( edges_r, edges_g, edges_b);
+    imwrite(uint8(abs(edges.*255-255)), gray(256), [filename '_' imageType '_' 'SIonly' '.jpg'], 'jpg'); 
 
 end
-    
+
 fprintf('Done!\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
