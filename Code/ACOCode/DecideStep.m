@@ -8,7 +8,7 @@ ant_transit_prob_p = zeros(size(ant_possible_steps,1),1);
 
 %Caluclate transition probabilities
 for kk = 1:size(ant_possible_steps, 1) %for all positions (x,y) the ant can choose from:
-
+    
     % Check if the position is in the ants memory
     if sum(ant_memory(1, :, 1) == ant_possible_steps(kk, 1) & ant_memory(1, :, 2) == ant_possible_steps(kk, 2)) == 0 %not in ant's memory
         ant_transit_prob_v(kk) = heuristic_map(ant_possible_steps(kk,1), ant_possible_steps(kk,2));
