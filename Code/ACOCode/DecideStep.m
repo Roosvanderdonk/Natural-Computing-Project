@@ -36,6 +36,10 @@ ant_transit_prob = (ant_transit_prob_v.^alpha) .* (ant_transit_prob_p.^beta) ./ 
 rand('state', sum(100*clock));
 temp = find(cumsum(ant_transit_prob) >= rand(1), 1);
 
+if isempty(temp)
+    temp = round(rand(1) * (size(ant_possible_steps, 1) - 1) + 1);
+end
+
 step = ant_possible_steps(temp, :);
 end
 

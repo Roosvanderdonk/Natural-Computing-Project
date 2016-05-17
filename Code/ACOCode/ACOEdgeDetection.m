@@ -84,16 +84,14 @@ for iteration = 1: num_iterations
             step = DecideStep(heuristic_map, pheromone_map, ant_possible_steps, ant_memory(ant, :, :), alpha, beta);
             
             % Process step
-            if ~isempty(step)
-                ant_positions(ant,:) = step;
-            end
+            ant_positions(ant,:) = step;
             
             %record the delta_p_current
             delta_p_current(ant_positions(ant,1), ant_positions(ant,2)) = 1;
 
             % record the new position into ant's memory
             ant_memory(ant, mod(step_nr, ant_memory_length) + 1, :) = step;
-
+            
             %update the pheromone function per ant
             pheromone_map = ((1-rho) .* pheromone_map + rho .* delta_p_current .* heuristic_map) .* delta_p_current + pheromone_map .* (abs(1 - delta_p_current));
         end
