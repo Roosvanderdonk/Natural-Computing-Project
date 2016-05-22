@@ -1,14 +1,14 @@
 % List all possibilities
-possible_num_iterations = 1:10;
-possible_ant_num_steps = [10, 100, 300, 500];
-possible_ant_memory_length = [0, 10, 40, 100];
-possible_alpha = [0.1, 0.5, 1, 5, 10];
-possible_beta = [0.1, 0.5, 1, 5, 10];
-possible_rho = 0.1:0.15:0.9;
-possible_phi = 0.1:0.15:0.9;
+possible_num_iterations = [3, 4, 5];
+possible_ant_num_steps = [50, 250, 500];
+possible_ant_memory_length = [0, 25, 50];
+possible_alpha = [0.25, 1, 10];
+possible_beta = [0.25, 1, 10];
+possible_rho = [0.2, 0.5, 0.8];
+possible_phi = [0.2, 0.5, 0.8];
 
 % Load dataset
-images = [3; 5; 7; 9; 10; 11; 12; 14; 16; 17];
+images = 11;
 
 % Allocate final_results
 total_entries = length(possible_num_iterations) * length(possible_ant_num_steps) ...
@@ -67,7 +67,7 @@ for iteration = 1: length(possible_num_iterations)
                                     possible_phi(phi) ...
                                     Evaluate(edge, result)];
                                 
-                                if mod(index, 1000) == 0
+                                if mod(index, 100) == 0
                                     disp(index)
                                 end
                                 index = index + 1;
