@@ -1,4 +1,4 @@
- figure, im = imread('C:\Users\roosv_000\Documents\Natural-Computing-Project\Dataset\18.jpg'); imshow(im)
+ figure, im = imread('C:\Users\roosv_000\Documents\Natural-Computing-Project\Dataset\11.jpg'); imshow(im)
 
     %get color edges and normalize magnitude
     C = coloredges(im);
@@ -13,24 +13,25 @@
     figure, imshow(uint8(255 * cat(3, C, G, G)))
     
     %threshold
-    th=[0:0.005:0.2];
+    th=[0:0.01:0.2];
     range=size(th);
     
-%     %vary the threshold for the coloredges
-%     for i=1:range(2)
-%         th(i)
-%         CC=C;
-%         CC(CC<th(i))=0;
-%         CC(CC>0.0001)=1;
-%         imshow(CC)
-%         pause(1)
-%     end
+    %vary the threshold for the coloredges
+    for i=1:range(2)
+        th(i)
+        CC=C;
+        CC(CC<th(i))=1;
+        CC(CC~=1)=0;
+        imshow(CC)
+        pause(1)
+        
+    end
 
 threshold = func_seperate_two_class(C)
 
 CC=C;
         CC(CC<threshold)=1;
-        CC(CC<0.9999)=0;
+        CC(CC ~= 1)=0;
         figure
         imshow(CC)
-        imwrite(CC, ['C:\Users\roosv_000\Documents\Natural-Computing-Project\Dataset\18_edge.jpg'], 'jpg');  
+        imwrite(CC, ['C:\Users\roosv_000\Documents\Natural-Computing-Project\Dataset\11_edge.png'], 'png');  

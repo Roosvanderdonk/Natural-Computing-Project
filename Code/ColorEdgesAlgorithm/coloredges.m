@@ -61,7 +61,11 @@ function [edge_magnitude, edge_orientation] = coloredges(im)
 	im = single(im) / 255;
 	yfilter = fspecial('sobel');
 	xfilter = yfilter';
-	
+    
+    % padd image
+    im = padarray(im,[1 1], 'replicate','both');
+	%
+    
 	rx = imfilter(im(:,:,1), xfilter);
 	gx = imfilter(im(:,:,2), xfilter);
 	bx = imfilter(im(:,:,3), xfilter);
@@ -79,13 +83,20 @@ function [edge_magnitude, edge_orientation] = coloredges(im)
 	%negative due to round-off error.
 	D = sqrt(abs(Jx.^2 - 2*Jx.*Jy + Jy.^2 + 4*Jxy.^2));
 	e1 = (Jx + Jy + D) / 2;
-	%the 2nd eigenvalue would be:  e2 = (Jx + Jy - D) / 2;
-
-	edge_magnitude = sqrt(e1);
 	
+    
+    %remove padding:
+    s = [1,1];
+    e11 = e1(1+s(1):end-s(1),1+s(2):end-s(2));
+    
+    %the 2nd eigenvalue would be:  e2 = (Jx + Jy - D) / 2;
+	edge_magnitude = sqrt(e11);
+    
+
+
 	if nargout > 1,
 		%compute edge orientation (from eigenvector tangent)
-		edge_orientation = atan2(-Jxy, e1 - Jy);
+		edge_orientation = atan2(-Jxy, e11 - Jy);
 	end
 
 end
