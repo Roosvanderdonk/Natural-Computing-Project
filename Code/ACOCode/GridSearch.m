@@ -53,8 +53,6 @@ for iteration = 1: length(possible_num_iterations)
                                 result(result >= T) = 1;
                                 
                                 edge = imread(edge_file);
-                                edge(edge <= 128) = 1;
-                                edge(edge > 128) = 0;
                                 
                                 % Save results
                                 final_results(index, :) = [images(image) ...
