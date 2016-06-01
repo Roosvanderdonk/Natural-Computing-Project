@@ -1,4 +1,4 @@
-function [] = GridSearch(method, imageindex)
+function [] = TestGridSearch(method, imageindex)
 %Gridsearch Evaluates different settings of parameters for the
 %given method and imagefile
 %   method = 'RGB', = normal ACS with RGB separate, then summed.

@@ -43,7 +43,7 @@ function [ pheromone_map ] = ACORGB( image, heuristic_name, ant_creation_name, a
 pheromone_maps = zeros(size(image));
 
 for i = 1:3
-    pheromone_maps(i) = ACOEdgeDetection( image(:,:,i), heuristic_name, ant_creation_name, ant_initialization_name, ant_possible_step_name, num_iterations, ant_num_steps, ant_memory_length, alpha, beta, rho, phi );
+    pheromone_maps(:,:,i) = ACOEdgeDetection( image(:,:,i), heuristic_name, ant_creation_name, ant_initialization_name, ant_possible_step_name, num_iterations, ant_num_steps, ant_memory_length, alpha, beta, rho, phi );
 end
 
 pheromone_map = sum(pheromone_maps,3);

@@ -22,7 +22,7 @@ for rr =1:nrow
         
         temp00 = zeros(size(temp11,1)); %fill temp00 with actual intensity differences
         for kk = 1:size(temp11,1)
-            temp00(kk) = abs(img(temp11(kk,1), temp11(kk,2))-img(temp22(kk,1), temp22(kk,2)));
+            temp00(kk) = abs(input_image(temp11(kk,1), temp11(kk,2))-input_image(temp22(kk,1), temp22(kk,2)));
         end
         
         if size(temp11,1) == 0
