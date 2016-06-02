@@ -57,6 +57,6 @@ f_measure = 2*((precision*recall)/(precision + recall));
 gmean = sqrt(tp_rate*tn_rate);
 
 %output vector
-EVAL = [accuracy sensitivity specificity precision recall f_measure gmean];
+EVAL = [f_measure tp tn fp fn];
 
 
