@@ -13,7 +13,7 @@ close all; clear all; clc;
 %img = double(imread('pepperssmall.png'))./255;
 
 % read in color image and convert to greyscale image
-rgb = imread('pepperssmall.png')
+rgb = imread('C:\Users\roosv_000\Documents\Natural-Computing-Project\Dataset\3.jpg')
 img = single(rgb2gray(rgb)) / 255;
 
 [nrow, ncol] = size(img);
@@ -63,12 +63,12 @@ v = v.*100; %contains the heuristic value for each pixel
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %paramete setting
-<<<<<<< HEAD:Code/BronCode2/main.m
+%<<<<<<< HEAD:Code/BronCode2/main.m
 alpha = 10; % pheromone information influence     
 beta = 0.1; % heuristic information influence 
 rho = 0.1; % evaporation rate     
 phi = 0.05; % pheromone decay coefficent
-=======
+%=======
 alpha = 10;      %influence of pheromone information
 beta = 0.1;      %influence of heuristic information
 rho = 0.1;       %evaporation rate (used to update the pheromones at each ant step)
@@ -80,7 +80,7 @@ phi = 0.05;      %pheromone decay coefficient (used to update the pheromones aft
 
 % pheromone function initialization
 p = 0.0001 .* ones(size(img));     
->>>>>>> e7658274b24a3185c7ab998fcbf55a0a3433528a:Code/BronCodeACO/main.m
+%>>>>>>> e7658274b24a3185c7ab998fcbf55a0a3433528a:Code/BronCodeACO/main.m
 
 ant_total_num = round(sqrt(nrow*ncol));
 ant_pos_idx = zeros(ant_total_num, 2); % record the location of ant
@@ -150,11 +150,11 @@ for iteration_idx = 1: total_iteration_num
                 end
             end
             
-<<<<<<< HEAD:Code/BronCode2/main.m
+%<<<<<<< HEAD:Code/BronCode2/main.m
             % if all neighborhood are in memory, then the permissible
-=======
+%=======
             % if all neighborhood positions are in memory, then the permissible
->>>>>>> e7658274b24a3185c7ab998fcbf55a0a3433528a:Code/BronCodeACO/main.m
+%>>>>>>> e7658274b24a3185c7ab998fcbf55a0a3433528a:Code/BronCodeACO/main.m
             % search range is RE-calculated. 
             if (sum(sum(ant_transit_prob_v))==0) || (sum(sum(ant_transit_prob_p))==0)                
                 for kk = 1:size(ant_search_range,1)
