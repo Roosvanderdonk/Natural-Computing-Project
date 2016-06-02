@@ -1,6 +1,6 @@
-function [ pheromone_map ] = ACOEdgeDetection( input_file, heuristic_name, ant_creation_name, ant_initialization_name, ant_possible_step_name, num_iterations, ant_num_steps, ant_memory_length, alpha, beta, rho, phi )
+function [ pheromone_map ] = ACOEdgeDetection( image, heuristic_name, ant_creation_name, ant_initialization_name, ant_possible_step_name, num_iterations, ant_num_steps, ant_memory_length, alpha, beta, rho, phi )
 %ACOEDGEDETECTION creates a pheromone map of the edges for a given image.
-% INPUT_FILE the location of the image to be processed.
+% IMAGE the image to be processed.
 %
 % HEURISTIC_NAME the name of the function that calculates the heuristic. 
 %   It should take the input image as argument and return a
@@ -40,8 +40,7 @@ function [ pheromone_map ] = ACOEdgeDetection( input_file, heuristic_name, ant_c
 % a step.
 
 
-% Load image
-image = double(imread(input_file)) ./ 255;
+% Analyze image
 nrow = size(image, 1);
 ncol = size(image, 2);
 
