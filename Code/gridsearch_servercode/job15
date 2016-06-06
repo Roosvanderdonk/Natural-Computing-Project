@@ -1,0 +1,5 @@
+#!/bin/bash
+# Grid search jobscript
+echo "Job 15 starts!"
+matlab -nodesktop -nodisplay -nosplash -nojvm -r "GridSearch('vector', 5);"
+echo "Job 15 is done."

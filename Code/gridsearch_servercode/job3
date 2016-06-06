@@ -1,0 +1,5 @@
+#!/bin/bash
+# Grid search jobscript
+echo "Job 3 starts!"
+matlab -nodesktop -nodisplay -nosplash -nojvm -r "GridSearch('RGBsum', 3);"
+echo "Job 3 is done."
