@@ -30,8 +30,10 @@ for rr = 1:nrow
             point_2 = [point_2(1,1,1), point_2(1,1,2), point_2(1,1,3)];
             
             
-            
-            temp00(kk) = dot(point_1, point_2) / norm(point_1)*norm(point_2);
+            %cosine similarity
+            temp00(kk) = dot(point_1, point_2) / (norm(point_1)*norm(point_2));
+            %cosine distance
+            temp00(kk) = 1- temp00(kk);
         end
         
         if size(temp11,1) == 0

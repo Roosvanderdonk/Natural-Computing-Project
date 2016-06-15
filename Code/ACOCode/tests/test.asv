@@ -10,14 +10,13 @@ pheromone_map = ACOEdgeDetection(image, ...
 T = func_seperate_two_class(pheromone_map);
 
 result = pheromone_map;
-result(result < T) = 1;
-result(result >= T) = 0;
+result(result < T) = 0;
+result(result >= T) = 1;
 
 edge = imread('dataset\testset\1_edge.png');
 
 Evaluate(edge, result)
 
 % added:
-figure
 [fig, eval] = Eval_Pheromones(edge./255, pheromone_map);
 imshow(fig)
