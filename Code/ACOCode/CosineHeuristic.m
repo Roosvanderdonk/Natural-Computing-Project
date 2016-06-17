@@ -29,9 +29,11 @@ for rr = 1:nrow
             point_1 = [point_1(1,1,1), point_1(1,1,2), point_1(1,1,3)];
             point_2 = [point_2(1,1,1), point_2(1,1,2), point_2(1,1,3)];
             
+            norm1 = max(norm(point_1),0.00001);
+            norm2 = max(norm(point_2),0.00001);
             
             %cosine similarity
-            temp00(kk) = dot(point_1, point_2) / (norm(point_1)*norm(point_2));
+            temp00(kk) = dot(point_1, point_2) / (norm1*norm2);
             %cosine distance
             temp00(kk) = 1- temp00(kk);
         end
