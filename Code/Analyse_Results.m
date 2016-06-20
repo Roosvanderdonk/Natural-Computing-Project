@@ -61,10 +61,20 @@ for methods=1:5
     Value=[];
     
 end
+%switch order of column to get same order as in the report
+f_scores_order=f_scores;
+f_scores_order(:,1) = f_scores(:,4);
+f_scores_order(:,2:3) = f_scores(:,1:2);
+f_scores_order(:,4) = f_scores(:,5);
+f_scores_order(:,5) = f_scores(:,3);
 
+
+
+figure;
 % make a boxplot of the five methods
-boxplot(f_scores, 'Labels',{'RGB max', 'RGB sum', 'Cosine', 'Gray' , 'Vector'})
+boxplot(f_scores_order, 'Labels',{'Gray Scale', 'RGB Max', 'RGB Sum', 'RGB Euclidean','RGB Cosine'})
 xlabel('Method')
+
 ylabel('F1-Score')
 
 

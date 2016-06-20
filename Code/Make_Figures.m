@@ -12,5 +12,7 @@ for method = 1:nr_methods
         title(fig_name')
         set(gca, 'XTickLabelMode', 'manual', 'XTickLabel', [])
             set(gca, 'YTickLabelMode', 'manual', 'YTickLabel', [])
+            figure;
+    plot(image)
     end
 end
