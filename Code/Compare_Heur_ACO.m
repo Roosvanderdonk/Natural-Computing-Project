@@ -13,3 +13,6 @@ set(gca,'XTickLabel',{'','Heuristic','','','','','ACO',''})
 %Boxplots
 figure
 boxplot([results_gray(:,1), test_results(:,1), results_max(:,1), test_results(:,2), results_sum(:,1), test_results(:,3), results_vec(:,1), test_results(:,4), results_cos(:,1), test_results(:,5)], {'H Gray', 'Gray', 'H RGB Max', 'RGB Max', 'H RGB Sum', 'RGB Sum', 'H HSV Euclidean', 'HSV Euclidean', 'H RGB Cosine', 'RGB Cosine'});
+
+figure
+boxplot([agg_heur, agg_test], {'Heuristic', 'ACO'})
