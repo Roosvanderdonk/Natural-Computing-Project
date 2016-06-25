@@ -1,4 +1,4 @@
-function [ pheromone_map ] = ACOEdgeDetection( image, heuristic_name, ant_creation_name, ant_initialization_name, ant_possible_step_name, num_iterations, ant_num_steps, ant_memory_length, alpha, beta, rho, phi )
+function [ pheromone_map, history ] = ACOEdgeDetection( image, heuristic_name, ant_creation_name, ant_initialization_name, ant_possible_step_name, num_iterations, ant_num_steps, ant_memory_length, alpha, beta, rho, phi )
 %ACOEDGEDETECTION creates a pheromone map of the edges for a given image.
 % IMAGE the image to be processed.
 %
@@ -44,9 +44,13 @@ function [ pheromone_map ] = ACOEdgeDetection( image, heuristic_name, ant_creati
 nrow = size(image, 1);
 ncol = size(image, 2);
 
+history = zeros(num_iterations + 1, nrow, ncol);
+
 % Caluclate Heuristic
 heuristic_func = str2func(heuristic_name);
 heuristic_map = heuristic_func(image);
+
+history(1, :, :) = heuristic_map;
 
 % Initialize
 pheromone_map = 0.0001 .* ones(nrow, ncol);
@@ -97,8 +101,10 @@ for iteration = 1: num_iterations
         
         % update the pheromone function when all ants did their idx step
         delta_p = (delta_p + (delta_p_current > 0)) > 0;
-        pheromone_map = (1-phi) .* pheromone_map; 
+        pheromone_map = (1-phi) .* pheromone_map;
+        
     end
+    history(iteration + 1, :, :) = pheromone_map;
 end
 end
 
