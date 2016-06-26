@@ -1,4 +1,4 @@
-function [ pheromone_map, history ] = ACORGB( image, heuristic_name, ant_creation_name, ant_initialization_name, ant_possible_step_name, num_iterations, ant_num_steps, ant_memory_length, alpha, beta, rho, phi)
+function [ pheromone_maps, history ] = ACORGB( image, heuristic_name, ant_creation_name, ant_initialization_name, ant_possible_step_name, num_iterations, ant_num_steps, ant_memory_length, alpha, beta, rho, phi)
 %ACOEDGEDETECTION creates a pheromone map of the edges for a given image.
 % IMAGE the image to be processed.
 %
@@ -40,11 +40,10 @@ function [ pheromone_map, history ] = ACORGB( image, heuristic_name, ant_creatio
 % a step.
 
 % pheromone matrices
-pheromone_maps = zeros(size(image));
+pheromone_maps = zeros(3, 128, 128);
 history = zeros(3, num_iterations + 1, 128, 128);
 
 for i = 1:3
-    [pheromone_maps(:,:,i), history(i,:,:,:)] = ACOEdgeDetection( image(:,:,i), heuristic_name, ant_creation_name, ant_initialization_name, ant_possible_step_name, num_iterations, ant_num_steps, ant_memory_length, alpha, beta, rho, phi );
+    [pheromone_maps(i,:,:), history(i,:,:,:)] = ACOEdgeDetection( image(:,:,i), heuristic_name, ant_creation_name, ant_initialization_name, ant_possible_step_name, num_iterations, ant_num_steps, ant_memory_length, alpha, beta, rho, phi );
     
 end
-pheromone_map = sum(pheromone_maps,3);
